@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Services\TaskService;
+use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
@@ -16,20 +18,38 @@ class TaskController extends Controller
         $this->taskService = $taskService;
     }
 
-    public function store(StoreTaskRequest $request): JsonResponse
+    public function store(StoreTaskRequest $request)
     {
        
-        $task = $this->taskService->createTask($request->validated());
 
-        return response()->json($task, 201);
+        try {
+            $task = $this->taskService->createTask($request->validated());
+        } catch (Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 400);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json($task, 201);
+        } else {
+            return redirect()->route('dashboard')->with('success', 'Task created successfully!');
+        }
     }
 
 
-    public function update(UpdateTaskRequest $request, int $taskId): JsonResponse
+    public function update(UpdateTaskRequest $request, int $taskId)
     {
      
-        $task = $this->taskService->updateTask($taskId, $request->validated());
-        return response()->json($task, 200);
+        try {
+            $task = $this->taskService->updateTask($taskId, $request->validated());
+        } catch (Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 405);
+        }
+
+        if ($request->route()->getPrefix() === 'api') {
+            return response()->json($task, 200);
+        } else {
+            return redirect()->route('dashboard')->with('success', 'Task updated successfully!');
+        }
     }
 
     public function getAllTasks(): JsonResponse
@@ -46,11 +66,29 @@ class TaskController extends Controller
         return response()->json($task, 200);
     }
 
-    public function updateStatus(int $taskId): JsonResponse
-    {
+    // public function updateStatus(int $taskId): JsonResponse
+    // {
      
-        $task = $this->taskService->updateStatus($taskId);
-        return response()->json($task, 200);
+    //     $task = $this->taskService->updateStatus($taskId);
+    //     return response()->json($task, 200);
+    // }
+
+    public function updateStatus(Request $request, $taskId)
+    {
+
+        try {
+            $task = $this->taskService->updateStatus($taskId);
+        } catch (Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 405);
+        }
+        
+        if ($request->route()->getPrefix() === 'api') {
+            return response()->json($task, 200);
+        } else {
+            return redirect()->route('dashboard')->with('success', 'Task status updated successfully!');
+        }
+
+       
     }
 
 

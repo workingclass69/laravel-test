@@ -42,7 +42,67 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
         ]);
     }
+    
+    public function showLoginForm()
+    {
+        session(['showRegister' => false]); 
+        return view('welcome');
+    }
 
+    public function showRegisterForm()
+    {
+        session(['showRegister' => true]);  
+        return view('welcome');
+    }
+
+    public function loginWeb(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:8',
+        ]);
+
+       
+        if (Auth::attempt($request->only('email', 'password'))) {
+            
+            $user = Auth::user();
+            
+         
+            $token = $user->createToken('auth_token')->plainTextToken;
+            
+           
+            session(['authToken' => $token]);
+
+        
+            return redirect()->route('dashboard');
+        }
+
+        return redirect()->back()->withErrors(['email' => 'Invalid login credentials.']);
+    }
+
+   
+    public function registerWeb(Request $request)
+    {
+        
+        $request->validate([
+            'name' => 'required|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        Auth::login($user);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+        session(['authToken' => $token]);
+
+        return redirect()->route('dashboard');
+    }
 
    
     public function login(Request $request)

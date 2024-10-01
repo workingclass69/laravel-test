@@ -28,7 +28,6 @@ class UpdateTaskRequest extends FormRequest
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'status' => 'nullable|string|max:50',
-            'due_date' => 'nullable|date',
         ];
     }
 }

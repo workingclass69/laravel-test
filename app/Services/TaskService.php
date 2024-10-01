@@ -35,6 +35,7 @@ class TaskService
             throw ValidationException::withMessages([
                 'status' => 'The task is already at the final status and cannot be updated further.'
             ]);
+            
         }
     
         $task->status = $this->statusFlow[$currentStatus];
@@ -51,9 +52,8 @@ class TaskService
                 break;
         }
     
-    
         $task->save();
-    
+        
         return $task;
     }
 
